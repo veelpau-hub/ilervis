@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ilervis — Observación Geoespacial y Planetaria</title>
-  <meta name="description" content="Plataforma de observación geoespacial desde Lleida. Estación meteorológica IoT, fotogrametría drone, teledetección SAR y análisis de terreno marciano.">
+  <title>Ilervis — Observació Geoespacial i Planetària</title>
+  <meta name="description" content="Plataforma d'observació geoespacial des de Lleida. Estació meteorològica IoT, fotogrametria drone, teledetecció SAR i anàlisi de terreny marcià.">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  {% if mapbox_token %}
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  {% endif %}
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="header">
     <div class="header-inner">
       <div class="logo">
@@ -22,14 +27,15 @@
         <span class="logo-sub">Observació Geoespacial · Lleida</span>
       </div>
       <nav class="nav">
-        <a href="#estacio" class="nav-link">Estació</a>
+        <a href="#estacio"      class="nav-link">Estació</a>
         <a href="#fotogrametria" class="nav-link">Fotogrametria</a>
-        <a href="#mart" class="nav-link">Mart</a>
+        <a href="#mart"         class="nav-link">Mart</a>
+        <a href="#adsb"         class="nav-link">ADS-B</a>
       </nav>
     </div>
   </header>
 
-  <!-- Hero -->
+  <!-- ── Hero ───────────────────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-inner">
       <p class="hero-tag">Pipeline complet d'observació</p>
@@ -45,7 +51,7 @@
     </div>
   </section>
 
-  <!-- Module 1 — Weather Station -->
+  <!-- ── Module 01 — Estació Meteorològica ──────────────────────────────── -->
   <section class="module" id="estacio">
     <div class="module-inner">
       <div class="module-header">
@@ -60,20 +66,15 @@
         </div>
       </div>
 
-      <!-- Live widgets -->
       <div class="widgets-grid">
-
-        <!-- Temperature -->
-        <div class="widget" id="widget-temp">
+        <div class="widget">
           <div class="widget-label">Temperatura</div>
           <div class="widget-value" id="temp-value">—</div>
           <div class="widget-unit">°C</div>
           <svg id="chart-temp" class="widget-chart"></svg>
           <div class="widget-trend" id="temp-trend"></div>
         </div>
-
-        <!-- Humidity -->
-        <div class="widget" id="widget-hum">
+        <div class="widget">
           <div class="widget-label">Humitat</div>
           <div class="widget-value" id="hum-value">—</div>
           <div class="widget-unit">%</div>
@@ -82,19 +83,15 @@
             <svg id="gauge-hum" class="gauge-svg" viewBox="0 0 120 70"></svg>
           </div>
         </div>
-
-        <!-- Pressure -->
-        <div class="widget" id="widget-pres">
+        <div class="widget">
           <div class="widget-label">Pressió</div>
           <div class="widget-value" id="pres-value">—</div>
           <div class="widget-unit">hPa</div>
           <svg id="chart-pres" class="widget-chart"></svg>
           <div class="widget-trend" id="pres-trend"></div>
         </div>
-
       </div>
 
-      <!-- Last updated -->
       <div class="station-meta">
         <span id="station-age"></span>
         <span class="sep">·</span>
@@ -103,7 +100,7 @@
     </div>
   </section>
 
-  <!-- Module 2 — Photogrammetry (placeholder) -->
+  <!-- ── Module 02 — Fotogrametria Drone ───────────────────────────────── -->
   <section class="module module-dark" id="fotogrametria">
     <div class="module-inner">
       <div class="module-header">
@@ -112,60 +109,244 @@
           <h2 class="module-title">Fotogrametria Drone</h2>
           <p class="module-sub">DJI Mini 4 Pro · WebODM · Ortofoto Segrià</p>
         </div>
-        <span class="badge badge-soon">Properament</span>
-      </div>
-      <div class="placeholder-card">
-        <div class="ph-icon">🛸</div>
-        <p>Ortofoto georreferenciada del Segrià processada amb WebODM.<br>
-           Anàlisi VARI de vegetació i model d'elevació digital.</p>
-        <div class="ph-specs">
-          <span>GSD ~2.5 cm/píxel</span>
-          <span>·</span>
-          <span>Resolució 80%/75%</span>
-          <span>·</span>
-          <span>EPSG:4326</span>
+        <div class="layer-controls" id="layer-controls">
+          <button class="layer-btn" id="btn-ortofoto" title="Ortofoto RGB">Ortofoto</button>
+          <button class="layer-btn" id="btn-vari"     title="Índex VARI vegetació">VARI</button>
         </div>
+      </div>
+
+      <!-- Map -->
+      <div class="map-wrap">
+        {% if mapbox_token %}
+        <div id="map-fotogrametria" class="mapbox-map"></div>
+        <div class="map-overlay" id="map-no-data" style="display:none">
+          <div class="map-notice">
+            <span class="map-notice-icon">🛸</span>
+            <p>Executa <code>process_ortho.py</code> per afegir l'ortofoto del vol</p>
+          </div>
+        </div>
+        {% else %}
+        <div class="map-placeholder">
+          <span class="map-ph-icon">🗺</span>
+          <p>Afegeix <code>MAPBOX_TOKEN</code> a les variables d'entorn per activar el mapa</p>
+          <a href="https://account.mapbox.com/" target="_blank" class="btn-small">Obtenir token →</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Metadata cards -->
+      <div class="meta-grid" id="foto-meta-grid">
+        <div class="meta-card">
+          <div class="meta-label">GSD</div>
+          <div class="meta-val" id="meta-gsd">—</div>
+          <div class="meta-unit">cm/píxel</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Àrea</div>
+          <div class="meta-val" id="meta-area">—</div>
+          <div class="meta-unit">ha</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Data vol</div>
+          <div class="meta-val" id="meta-date">—</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Ubicació</div>
+          <div class="meta-val" id="meta-location">Segrià</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Processament</div>
+          <div class="meta-val">WebODM</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Projecció</div>
+          <div class="meta-val">EPSG:4326</div>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="pipeline">
+        <div class="pipeline-step ps-done">DJI Mini 4 Pro<span class="ps-detail">80% overlap · 80m</span></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step ps-done">WebODM<span class="ps-detail">GSD 2.5 cm/px</span></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step ps-done">GDAL · rasterio<span class="ps-detail">WGS84 · PNG</span></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step ps-active">Mapbox GL JS<span class="ps-detail">Capa d'imatge</span></div>
       </div>
     </div>
   </section>
 
-  <!-- Module 3 — Mars (placeholder) -->
+  <!-- ── Module 03 — Terreny Marcià HiRISE ─────────────────────────────── -->
   <section class="module" id="mart">
     <div class="module-inner">
       <div class="module-header">
         <span class="module-num">03</span>
         <div>
           <h2 class="module-title">Terreny Marcià — HiRISE</h2>
-          <p class="module-sub">NASA / Universitat d'Arizona · Cràter Jezero</p>
+          <p class="module-sub">NASA · Universitat d'Arizona · Cràter Jezero</p>
         </div>
-        <span class="badge badge-soon">Properament</span>
+        <span class="badge badge-hirise">25 cm/px</span>
       </div>
-      <div class="placeholder-card">
-        <div class="ph-icon">🔴</div>
-        <p>Processament de dades HiRISE a 25 cm/píxel sobre el Cràter Jezero.<br>
-           Comparativa morfològica Segrià–Mart: perfils d'elevació, rugositat, cauces.</p>
-        <div class="ph-specs">
-          <span>25–30 cm/píxel</span>
-          <span>·</span>
-          <span>GeoTIFF / JP2</span>
-          <span>·</span>
-          <span>GDAL + rasterio</span>
+
+      <!-- Comparison panels -->
+      <div class="comparison-grid">
+        <div class="terrain-panel">
+          <div class="terrain-header">
+            <span class="terrain-dot dot-blue"></span>
+            <span class="terrain-title">Segrià, Lleida</span>
+            <span class="terrain-tag">DSM · WebODM</span>
+          </div>
+          <div class="terrain-img-wrap" id="segria-wrap">
+            <div class="terrain-no-data" id="segria-no-data">
+              <span>Afegeix DSM processat</span>
+              <code>process_ortho.py --dsm</code>
+            </div>
+            <img id="segria-img" class="terrain-img" style="display:none" alt="Segrià DSM">
+          </div>
+          <div class="terrain-stats" id="segria-stats"></div>
+        </div>
+
+        <div class="terrain-panel">
+          <div class="terrain-header">
+            <span class="terrain-dot dot-orange"></span>
+            <span class="terrain-title">Cràter Jezero, Mart</span>
+            <span class="terrain-tag">HiRISE · ESP_046060_1985</span>
+          </div>
+          <div class="terrain-img-wrap" id="mars-wrap">
+            <div class="terrain-no-data" id="mars-no-data" style="display:none">
+              <span>Afegeix HiRISE processat</span>
+              <code>process_hirise.py fitxer.tif</code>
+            </div>
+            <img id="mars-img" class="terrain-img" src="/static/mars_jezero.png" alt="Jezero Crater HiRISE">
+          </div>
+          <div class="terrain-stats" id="mars-stats"></div>
+        </div>
+      </div>
+
+      <!-- Elevation profile chart -->
+      <div class="profile-section">
+        <div class="profile-header">
+          <h3 class="profile-title">Perfil d'Elevació Comparat</h3>
+          <div class="profile-legend">
+            <span class="leg-dot dot-blue"></span><span>Segrià</span>
+            <span class="leg-dot dot-orange"></span><span>Jezero</span>
+            <span class="demo-badge" id="demo-badge">EXEMPLE</span>
+          </div>
+        </div>
+        <svg id="elevation-chart" class="elevation-svg"></svg>
+      </div>
+
+      <!-- Metrics comparison -->
+      <div class="metrics-grid" id="metrics-grid">
+        <div class="metric-row metric-head">
+          <span></span>
+          <span>Segrià</span>
+          <span>Jezero, Mart</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Resolució</span>
+          <span class="metric-val" id="res-segria">~2.5 cm/px</span>
+          <span class="metric-val" id="res-mars">25–30 cm/px</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Rugositat (σ)</span>
+          <span class="metric-val" id="rug-segria">—</span>
+          <span class="metric-val" id="rug-mars">—</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Font</span>
+          <span class="metric-val">WebODM + GDAL</span>
+          <span class="metric-val">HiRISE · NASA/UA</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Pipeline</span>
+          <span class="metric-val">rasterio · numpy</span>
+          <span class="metric-val">rasterio · numpy</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- ── Module 04 — ADS-B RTL-SDR ─────────────────────────────────────── -->
+  <section class="module module-dark" id="adsb">
+    <div class="module-inner">
+      <div class="module-header">
+        <span class="module-num">04</span>
+        <div>
+          <h2 class="module-title">Radar ADS-B</h2>
+          <p class="module-sub">RTL-SDR Blog V4 · dump1090 · Mapbox GL JS</p>
+        </div>
+        <span class="badge badge-soon">Properament</span>
+      </div>
+
+      <div class="adsb-grid">
+        <div class="adsb-pipeline">
+          <div class="adsb-step">
+            <div class="adsb-step-icon">📡</div>
+            <div class="adsb-step-name">RTL-SDR Blog V4</div>
+            <div class="adsb-step-desc">Receptor 1090 MHz · USB</div>
+          </div>
+          <div class="adsb-arrow">→</div>
+          <div class="adsb-step">
+            <div class="adsb-step-icon">⚙️</div>
+            <div class="adsb-step-name">dump1090</div>
+            <div class="adsb-step-desc">Decodificador ADS-B</div>
+          </div>
+          <div class="adsb-arrow">→</div>
+          <div class="adsb-step">
+            <div class="adsb-step-icon">🐍</div>
+            <div class="adsb-step-name">Flask API</div>
+            <div class="adsb-step-desc">/api/adsb/aircraft</div>
+          </div>
+          <div class="adsb-arrow">→</div>
+          <div class="adsb-step">
+            <div class="adsb-step-icon">🗺</div>
+            <div class="adsb-step-name">Mapbox GL JS</div>
+            <div class="adsb-step-desc">Visualització temps real</div>
+          </div>
+        </div>
+
+        <div class="adsb-specs">
+          <div class="spec-row">
+            <span class="spec-key">Freqüència</span>
+            <span class="spec-val">1090 MHz</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Endpoint reservat</span>
+            <span class="spec-val"><code>GET /api/adsb/aircraft</code></span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Protocol</span>
+            <span class="spec-val">ADS-B Mode S</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Hardware</span>
+            <span class="spec-val">RTL-SDR Blog V4 · USB 2.0</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Abast esperat</span>
+            <span class="spec-val">~250–400 km</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
   <footer class="footer">
     <div class="footer-inner">
       <span class="footer-brand">ILERVIS</span>
       <span class="footer-sep">·</span>
       <span class="footer-copy">Construït des de Lleida</span>
       <span class="footer-sep">·</span>
-      <a href="https://github.com" class="footer-link">GitHub</a>
+      <a href="https://github.com/veelpau-hub/ilervis" class="footer-link" target="_blank">GitHub</a>
     </div>
   </footer>
 
+  <script>window.MAPBOX_TOKEN = {{ mapbox_token | tojson }};</script>
   <script src="/static/js/station.js"></script>
+  <script src="/static/js/mapa.js"></script>
+  <script src="/static/js/mars.js"></script>
 </body>
 </html>

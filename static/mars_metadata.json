@@ -1,0 +1,12 @@
+{
+  "available": true,
+  "source": "sample",
+  "product_id": "ESP_046060_1985",
+  "location": "Cr\u00e0ter Jezero, Mart",
+  "coordinates_mars": [
+    77.4,
+    18.4
+  ],
+  "resolution_cm": 25,
+  "processed_at": "2026-05-11T21:11:36.921739"
+}

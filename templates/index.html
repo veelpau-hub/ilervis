@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ilervis — Observación Geoespacial y Planetaria</title>
+  <meta name="description" content="Plataforma de observación geoespacial desde Lleida. Estación meteorológica IoT, fotogrametría drone, teledetección SAR y análisis de terreno marciano.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">⊕</span>
+        <span class="logo-name">ILERVIS</span>
+        <span class="logo-sub">Observació Geoespacial · Lleida</span>
+      </div>
+      <nav class="nav">
+        <a href="#estacio" class="nav-link">Estació</a>
+        <a href="#fotogrametria" class="nav-link">Fotogrametria</a>
+        <a href="#mart" class="nav-link">Mart</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-tag">Pipeline complet d'observació</p>
+      <h1 class="hero-title">Del Segrià a Mart —<br>mateix pipeline, distinta escala.</h1>
+      <p class="hero-desc">Les mateixes tècniques de teledetecció que empren GMV, Indra i Satlantis,
+        des del hardware IoT fins a l'anàlisi de dades HiRISE de la NASA.</p>
+      <div class="hero-pills">
+        <span class="pill pill-green">ESP32 + BME280</span>
+        <span class="pill pill-blue">DJI Mini 4 Pro</span>
+        <span class="pill pill-purple">HiRISE NASA</span>
+        <span class="pill pill-orange">RTL-SDR ADS-B</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Module 1 — Weather Station -->
+  <section class="module" id="estacio">
+    <div class="module-inner">
+      <div class="module-header">
+        <span class="module-num">01</span>
+        <div>
+          <h2 class="module-title">Estació Meteorològica</h2>
+          <p class="module-sub">ESP32 NodeMCU + BME280 · Lleida, Segrià</p>
+        </div>
+        <div class="station-status" id="station-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-label" id="status-label">Connectant...</span>
+        </div>
+      </div>
+
+      <!-- Live widgets -->
+      <div class="widgets-grid">
+
+        <!-- Temperature -->
+        <div class="widget" id="widget-temp">
+          <div class="widget-label">Temperatura</div>
+          <div class="widget-value" id="temp-value">—</div>
+          <div class="widget-unit">°C</div>
+          <svg id="chart-temp" class="widget-chart"></svg>
+          <div class="widget-trend" id="temp-trend"></div>
+        </div>
+
+        <!-- Humidity -->
+        <div class="widget" id="widget-hum">
+          <div class="widget-label">Humitat</div>
+          <div class="widget-value" id="hum-value">—</div>
+          <div class="widget-unit">%</div>
+          <svg id="chart-hum" class="widget-chart"></svg>
+          <div class="widget-gauge-wrap">
+            <svg id="gauge-hum" class="gauge-svg" viewBox="0 0 120 70"></svg>
+          </div>
+        </div>
+
+        <!-- Pressure -->
+        <div class="widget" id="widget-pres">
+          <div class="widget-label">Pressió</div>
+          <div class="widget-value" id="pres-value">—</div>
+          <div class="widget-unit">hPa</div>
+          <svg id="chart-pres" class="widget-chart"></svg>
+          <div class="widget-trend" id="pres-trend"></div>
+        </div>
+
+      </div>
+
+      <!-- Last updated -->
+      <div class="station-meta">
+        <span id="station-age"></span>
+        <span class="sep">·</span>
+        <span id="station-id"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Module 2 — Photogrammetry (placeholder) -->
+  <section class="module module-dark" id="fotogrametria">
+    <div class="module-inner">
+      <div class="module-header">
+        <span class="module-num">02</span>
+        <div>
+          <h2 class="module-title">Fotogrametria Drone</h2>
+          <p class="module-sub">DJI Mini 4 Pro · WebODM · Ortofoto Segrià</p>
+        </div>
+        <span class="badge badge-soon">Properament</span>
+      </div>
+      <div class="placeholder-card">
+        <div class="ph-icon">🛸</div>
+        <p>Ortofoto georreferenciada del Segrià processada amb WebODM.<br>
+           Anàlisi VARI de vegetació i model d'elevació digital.</p>
+        <div class="ph-specs">
+          <span>GSD ~2.5 cm/píxel</span>
+          <span>·</span>
+          <span>Resolució 80%/75%</span>
+          <span>·</span>
+          <span>EPSG:4326</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Module 3 — Mars (placeholder) -->
+  <section class="module" id="mart">
+    <div class="module-inner">
+      <div class="module-header">
+        <span class="module-num">03</span>
+        <div>
+          <h2 class="module-title">Terreny Marcià — HiRISE</h2>
+          <p class="module-sub">NASA / Universitat d'Arizona · Cràter Jezero</p>
+        </div>
+        <span class="badge badge-soon">Properament</span>
+      </div>
+      <div class="placeholder-card">
+        <div class="ph-icon">🔴</div>
+        <p>Processament de dades HiRISE a 25 cm/píxel sobre el Cràter Jezero.<br>
+           Comparativa morfològica Segrià–Mart: perfils d'elevació, rugositat, cauces.</p>
+        <div class="ph-specs">
+          <span>25–30 cm/píxel</span>
+          <span>·</span>
+          <span>GeoTIFF / JP2</span>
+          <span>·</span>
+          <span>GDAL + rasterio</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand">ILERVIS</span>
+      <span class="footer-sep">·</span>
+      <span class="footer-copy">Construït des de Lleida</span>
+      <span class="footer-sep">·</span>
+      <a href="https://github.com" class="footer-link">GitHub</a>
+    </div>
+  </footer>
+
+  <script src="/static/js/station.js"></script>
+</body>
+</html>

@@ -159,6 +159,9 @@ def adsb_aircraft():
     return jsonify([])
 
 
+# ── Init DB at import time (gunicorn doesn't run __main__) ───────────────────
+init_db()
+
 # ── Frontend ──────────────────────────────────────────────────────────────────
 
 @app.route('/')
